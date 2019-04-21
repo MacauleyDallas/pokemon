@@ -208,7 +208,7 @@ static void test_get_found_pokemon(void) {
 
     printf("       --> Checking that the current Pokemon is Bulbasaur\n");
     assert(get_current_pokemon(pokedex) == bulbasaur);
-    
+
     printf("    ... Setting Bulbasaur to be found\n");
     find_current_pokemon(pokedex);
 
@@ -271,12 +271,12 @@ static int is_same_pokemon(Pokemon first, Pokemon second) {
 // Helper function to compare whether one Pokemon is a *copy* of
 // another, based on whether their attributes match (e.g. pokemon_id,
 // height, weight, etc).
-// 
+//
 // It also checks that the pointers do *not* match -- i.e. that the
 // pointers aren't both pointing to the same pokemon struct in memory.
 // If the pointers both contain the same address, then the second
 // Pokemon is not a *copy* of the first Pokemon.
-// 
+//
 // This function doesn't (yet) check that the Pokemon's names match
 // (but perhaps you could add that check yourself...).
 static int is_copied_pokemon(Pokemon first, Pokemon second) {

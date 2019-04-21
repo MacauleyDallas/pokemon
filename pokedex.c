@@ -50,6 +50,7 @@ struct pokedex {
 
 struct pokenode {
     struct pokenode *next;
+    int found;
     Pokemon         pokemon;
 };
 
@@ -57,6 +58,7 @@ struct pokenode {
 
 
 // Add prototypes for any extra functions you create here.
+struct pokenode *new_pokenode(Pokemon pokemon);
 
 
 // You need to implement the following 20 functions.
@@ -68,6 +70,8 @@ Pokedex new_pokedex(void) {
     Pokedex new_pokedex = malloc(sizeof (struct pokedex));
     assert(new_pokedex != NULL);
     // add your own code here
+
+    // k
     new_pokedex->head = NULL;
     return new_pokedex;
 }
@@ -79,34 +83,66 @@ Pokedex new_pokedex(void) {
 
 void add_pokemon(Pokedex pokedex, Pokemon pokemon) {
     //Make new pokenode
+    int i = 0;
+    int exit = 0;
+    int firstPoke = 0;
+    struct pokenode *newPokenode = new_pokenode(pokemon);
+    struct pokenode *end = pokedex->head;
 
-    //
-    if (pokedex->numPokemon == 0) {
-        pokedex->selectedPokemon = pokedex->;
+    printf("%s\n", end);
+    if (end == NULL) {
+        pokedex->head = newPokenode;
+        pokedex->selectedPokemon = newPokenode;
+    } else {
+        while (exit != 1) {
+            if (end->next != NULL){
+                end = end->next;
+            } else {
+                exit = 1;
+            }
+            exit = 1;
+            printf("%d\n",i++);
+        }
     }
 
-    fprintf(stderr, "exiting because you have not implemented the add_pokemon function in pokedex.c\n");
-    exit(1);
+    end->next = newPokenode;
 }
 
 void detail_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the detail_pokemon function in pokedex.c\n");
-    exit(1);
+
+    struct pokenode *selectedPokemon = pokedex->selectedPokemon;
+
+    printf("ID: %003d\n", pokemon_id(selectedPokemon->pokemon));
+    if (selectedPokemon->found == 0) {
+        printf("Name: ********\n");
+    } else if (selectedPokemon->found == 1) {
+        printf("Name: %s\n", pokemon_name(selectedPokemon->pokemon));
+    }
+    printf("Height: %.2lfm\n", pokemon_height(selectedPokemon->pokemon));
+    printf("Weight: %.2lfkg\n", pokemon_weight(selectedPokemon->pokemon));
+
+    // printf("Type %s \n", pokemon_first_type(pokedex->selectedPokemon->pokemon));
+
+    // printf("Type %s %s \n", pokemon_first_type(pokedex->selectedPokemon->pokemon), pokemon_second_type(pokedex->selectedPokemon->pokemon));
+
 }
 
 Pokemon get_current_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the get_current_pokemon function in pokedex.c\n");
-    exit(1);
+    Pokemon pokemon = pokedex->selectedPokemon->pokemon;
+    return pokemon;
 }
 
 void find_current_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the find_current_pokemon function in pokedex.c\n");
-    exit(1);
+    pokedex->selectedPokemon->found = 1;
 }
 
 void print_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the print_pokemon function in pokedex.c\n");
-    exit(1);
+    struct pokenode *currentHead = pokedex->head;
+    struct pokenode *currentlySelected = pokedex->selectedPokemon;
+    while (currentHead != NULL) {
+        printf("%s\n",pokemon_name(currentHead->pokemon));
+        currentHead = currentHead->next;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -202,5 +238,8 @@ struct pokenode *new_pokenode(Pokemon pokemon) {
     struct pokenode *n;
     n = malloc(sizeof(struct pokenode));
     assert(n != NULL);
+    n->pokemon = pokemon;
+    n->next = NULL;
+    n->found = 0;
     return n;
 }
