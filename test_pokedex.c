@@ -37,6 +37,7 @@
 
 
 // Add your own prototypes here.
+static void get_current_test(void);
 
 
 // Tests for Pokedex functions from pokedex.c.
@@ -57,11 +58,11 @@ int main(int argc, char *argv[]) {
     printf("Welcome to the COMP1511 Pokedex Tests!\n");
 
     printf("\n==================== Pokedex Tests ====================\n");
-
-    test_new_pokedex();
+    // get_current_test();
+    // test_new_pokedex();
     test_add_pokemon();
     test_next_pokemon();
-    test_get_found_pokemon();
+    // test_get_found_pokemon();
 
     printf("\nAll Pokedex tests passed, you are Awesome!\n");
 }
@@ -120,9 +121,12 @@ static void test_add_pokemon(void) {
     printf("    ... Adding Bulbasaur to the Pokedex\n");
     add_pokemon(pokedex, bulbasaur);
 
+    print_pokemon(pokedex);
+
     printf("    ... Destroying the Pokedex\n");
     destroy_pokedex(pokedex);
 
+    print_pokemon(pokedex);
     printf(">> Passed add_pokemon tests!\n");
 }
 
@@ -229,7 +233,24 @@ static void test_get_found_pokemon(void) {
 
 
 // Write your own Pokedex tests here!
+static void get_current_test(void) {
+    printf("\n>> Testing get current\n");
 
+    printf("    ... Creating a new Pokedex\n");
+    Pokedex pokedex = new_pokedex();
+
+    printf("    ... Creating Bulbasaur and Ivysaur\n");
+    Pokemon bulbasaur = create_bulbasaur();
+    Pokemon ivysaur = create_ivysaur();
+
+    printf("    ... Adding Bulbasaur and Ivysaur to the Pokedex\n");
+    add_pokemon(pokedex, bulbasaur);
+    add_pokemon(pokedex, ivysaur);
+
+    printf("       --> Checking that the current Pokemon is Bulbasaur\n");
+    assert(is_same_pokemon(get_current_pokemon(pokedex), bulbasaur));
+
+}
 
 ////////////////////////////////////////////////////////////////////////
 //                     Helper Functions                               //

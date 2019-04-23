@@ -60,8 +60,8 @@ struct pokenode {
 
 
 // Add prototypes for any extra functions you create here.
-struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node);
-void print_name_if_found(struct pokenode *node);
+static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node);
+static void print_name_if_found(struct pokenode *node);
 
 // You need to implement the following 20 functions.
 // In other words, replace the lines calling fprintf & exit with your code.
@@ -123,6 +123,7 @@ void detail_pokemon(Pokedex pokedex) {
 
 Pokemon get_current_pokemon(Pokedex pokedex) {
     Pokemon pokemon = pokedex->selectedPokenode->pokemon;
+    // printf("%d\n", pokemon_id(pokedex->selectedPokenode->pokemon));
     return pokemon;
 }
 
@@ -192,16 +193,24 @@ void remove_pokemon(Pokedex pokedex) {
     }
     if (node == pokedex->head) {
         if (pokedex->head->next != NULL) {
-            pokedex->head = pokedex->head->head;
+            pokedex->head = pokedex->head->next;
         } else {
             pokedex->head = NULL;
         }
     }
+    free(node);
 }
 
 void destroy_pokedex(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the destroy_pokedex function in pokedex.c\n");
-    exit(1);
+    struct pokenode *node = pokedex->head;
+    struct pokenode *nextNode;
+    while (node != NULL) {
+        nextNode =  node->next;
+        free(node);
+        node = nextNode;
+    }
+    free(pokedex);
+    pokedex = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -209,8 +218,9 @@ void destroy_pokedex(Pokedex pokedex) {
 ////////////////////////////////////////////////////////////////////////
 
 void go_exploring(Pokedex pokedex, int seed, int factor, int how_many) {
-    fprintf(stderr, "exiting because you have not implemented the go_exploring function in pokedex.c\n");
-    exit(1);
+    srand(seed);
+    int num = rand()%(how_many-1);
+    printf("%d", num);
 }
 
 int count_found_pokemon(Pokedex pokedex) {
@@ -264,7 +274,7 @@ Pokedex search_pokemon(Pokedex pokedex, char *text) {
 // Add definitions for your own functions below.
 // Make them static to limit their scope to this file.
 
-void print_name_if_found(struct pokenode *node) {
+static void print_name_if_found(struct pokenode *node) {
     Pokemon pokemon = node->pokemon;
     char *name = pokemon_name(pokemon);
     char hidden[100] = {0};
@@ -284,7 +294,7 @@ void print_name_if_found(struct pokenode *node) {
     }
 }
 
-struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node) {
+static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node) {
     struct pokenode *n;
     n = malloc(sizeof(struct pokenode));
     assert(n != NULL);
