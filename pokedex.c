@@ -72,7 +72,7 @@ Pokedex new_pokedex(void) {
     Pokedex new_pokedex = malloc(sizeof (struct pokedex));
     assert(new_pokedex != NULL);
     // add your own code here
-
+    new_pokedex->numPokemon = 0;
     // k
     new_pokedex->head = NULL;
     return new_pokedex;
@@ -132,9 +132,8 @@ void find_current_pokemon(Pokedex pokedex) {
 }
 
 void print_pokemon(Pokedex pokedex) {
-    int exit = 0;
     struct pokenode *currentNode = pokedex->head;
-    struct pokenode *currentlySelected = pokedex->selectedPokenode;
+    // struct pokenode *currentlySelected = pokedex->selectedPokenode;
     while (currentNode != NULL) {
         if (currentNode->pokemon == pokedex->selectedPokenode->pokemon) {
             printf("--> ");
@@ -308,3 +307,4 @@ static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node) {
     }
     return n;
 }
+

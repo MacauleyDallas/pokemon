@@ -59,10 +59,10 @@ int main(int argc, char *argv[]) {
 
     printf("\n==================== Pokedex Tests ====================\n");
     // get_current_test();
-    // test_new_pokedex();
+    test_new_pokedex();
     test_add_pokemon();
     test_next_pokemon();
-    // test_get_found_pokemon();
+    test_get_found_pokemon();
 
     printf("\nAll Pokedex tests passed, you are Awesome!\n");
 }
@@ -125,8 +125,6 @@ static void test_add_pokemon(void) {
 
     printf("    ... Destroying the Pokedex\n");
     destroy_pokedex(pokedex);
-
-    print_pokemon(pokedex);
     printf(">> Passed add_pokemon tests!\n");
 }
 
@@ -246,9 +244,12 @@ static void get_current_test(void) {
     printf("    ... Adding Bulbasaur and Ivysaur to the Pokedex\n");
     add_pokemon(pokedex, bulbasaur);
     add_pokemon(pokedex, ivysaur);
-
+    print_pokemon(pokedex);
+    
+    // Pokemon pokemon = get_current_pokemon(pokedex);
+    
     printf("       --> Checking that the current Pokemon is Bulbasaur\n");
-    assert(is_same_pokemon(get_current_pokemon(pokedex), bulbasaur));
+
 
 }
 
@@ -310,3 +311,4 @@ static int is_copied_pokemon(Pokemon first, Pokemon second) {
 }
 
 // Write your own helper functions here!
+
