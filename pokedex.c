@@ -54,6 +54,7 @@ struct pokenode {
     struct pokenode *next;
     int found;
     Pokemon pokemon;
+    int evolveInto;
 };
 
 // Add any other structs you define here.
@@ -62,6 +63,7 @@ struct pokenode {
 // Add prototypes for any extra functions you create here.
 static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node);
 static void print_name_if_found(struct pokenode *node);
+static struct pokenode *get_pokenode(Pokedex pokedex, int id);
 
 // You need to implement the following 20 functions.
 // In other words, replace the lines calling fprintf & exit with your code.
@@ -166,12 +168,12 @@ void prev_pokemon(Pokedex pokedex) {
 }
 
 void change_current_pokemon(Pokedex pokedex, int id) {
-    struct pokenode *currentNode = pokedex->head;
-    while (currentNode != NULL) {
-        if (pokemon_id(currentNode->pokemon) == id ) {
-            pokedex->selectedPokenode = currentNode;
+    struct pokenode *leadingNode = pokedex->head;
+    while (leadingNode != NULL) {
+        if (pokemon_id(leadingNode->pokemon) == id ) {
+            pokedex->selectedPokenode = leadingNode;
         }
-        currentNode = currentNode->next;
+        leadingNode = leadingNode->next;
     }
 }
 
@@ -217,19 +219,52 @@ void destroy_pokedex(Pokedex pokedex) {
 ////////////////////////////////////////////////////////////////////////
 
 void go_exploring(Pokedex pokedex, int seed, int factor, int how_many) {
+    Pokemon currentlySelected = get_current_pokemon(pokedex);
+    struct pokenode *randomNode = NULL;
     srand(seed);
     int num = rand()%(how_many-1);
-    printf("%d", num);
+    printf("Randomly chosen ID number %d\n", num);
+    struct pokenode *leadingNode = pokedex->head;
+    num = 20;
+
+    while (leadingNode != NULL) {
+        if (pokemon_id(leadingNode->pokemon) == num ) {
+            randomNode = leadingNode;
+        }
+
+        leadingNode = leadingNode->next;
+    }
+
+    if (randomNode != NULL) {
+        randomNode->found = 1;
+    }
+
 }
 
 int count_found_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the count_found_pokemon function in pokedex.c\n");
-    exit(1);
+    int count = 0;
+    struct pokenode *leadingNode = pokedex->head;
+    while (leadingNode != NULL) {
+        if (leadingNode->found == 1) {
+            count++;
+        }
+
+        leadingNode = leadingNode->next;
+    }
+
+
+    return count;
 }
 
 int count_total_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the count_total_pokemon function in pokedex.c\n");
-    exit(1);
+    int count = 0;
+    struct pokenode *leadingNode = pokedex->head;
+    while (leadingNode != NULL) {
+            count++;
+        leadingNode = leadingNode->next;
+    }
+
+    return count;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -237,13 +272,28 @@ int count_total_pokemon(Pokedex pokedex) {
 ////////////////////////////////////////////////////////////////////////
 
 void add_pokemon_evolution(Pokedex pokedex, int from_id, int to_id) {
-    fprintf(stderr, "exiting because you have not implemented the add_pokemon_evolution function in pokedex.c\n");
-    exit(1);
+    struct pokenode *leadingNode = pokedex->head;
+    while (leadingNode != NULL) {
+        if (pokemon_id(leadingNode->pokemon) == from_id) {
+            leadingNode->evolveInto = to_id;
+        }
+    }
+
 }
 
 void show_evolutions(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the show_evolutions function in pokedex.c\n");
-    exit(1);
+    int evolves = 0;
+    struct pokenode *leadingNode = pokedex->selectedPokenode;
+    Pokemon pokemon = leadingNode->pokemon;
+    printf("#%02d %s", pokemon_id(pokemon), pokemon_name(pokemon));
+    while (leadingNode->evolveInto != -1) {
+        evolves = leadingNode->evolveInto;
+        struct pokenode *node = get_pokenode(pokedex, evolves);
+        pokemon = node->pokemon;
+
+        printf(" --> $%02d %s\n", pokemon_id(pokemon), pokemon_name(pokemon));
+
+    }
 }
 
 int get_next_evolution(Pokedex pokedex) {
@@ -301,6 +351,7 @@ static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node) {
     n->pokemon = pokemon;
     n->found = 0;
     n->prev = NULL;
+    n->evolveInto = -1;
     if (node != NULL) {
         node->next = n;
         n->prev = node;
@@ -308,3 +359,14 @@ static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node) {
     return n;
 }
 
+static struct pokenode *get_pokenode(Pokedex pokedex, int id) {
+    struct pokenode *leadingNode = pokedex->head;
+    struct pokenode *found = NULL;
+    while (leadingNode != NULL) {
+        if (pokemon_id(leadingNode->pokemon) == id) {
+            found = leadingNode;
+        }
+        leadingNode = leadingNode->next;
+    }
+    return found;
+}
