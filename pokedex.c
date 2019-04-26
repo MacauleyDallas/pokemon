@@ -14,7 +14,7 @@
 #include <assert.h>
 
 // Add any extra #includes your code needs here.
-//
+#include <string.h>
 // But note you are not permitted to use functions from string.h
 // so do not #include <string.h>
 
@@ -65,7 +65,7 @@ static struct pokenode *new_pokenode(Pokemon pokemon, struct pokenode *node);
 static void print_name_if_found(struct pokenode *node);
 static struct pokenode *get_pokenode(Pokedex pokedex, int id);
 static void print_id_if_found(struct pokenode *node);
-static void print_type(struct pokenode *node);
+static void print_type(struct pokenode *node, int failType);
 
 
 // You need to implement the following 20 functions.
@@ -113,11 +113,13 @@ void detail_pokemon(Pokedex pokedex) {
         printf("Name: *****\n");
         printf("Height: ---\n");
         printf("Weight: ---\n");
+        printf("Type: ---\n");
     } else {
         printf("ID: %003d\n", pokemon_id(selectedPokenode->pokemon));
         printf("Name: %s\n", pokemon_name(selectedPokenode->pokemon));
         printf("Height: %.2lfm\n", pokemon_height(selectedPokenode->pokemon));
         printf("Weight: %.2lfkg\n", pokemon_weight(selectedPokenode->pokemon));
+        print_type(selectedPokenode, 1);
     }
 
     // printf("Type %s \n", pokemon_first_type(pokedex->selectedPokenode->pokemon));
@@ -138,7 +140,6 @@ void find_current_pokemon(Pokedex pokedex) {
 
 void print_pokemon(Pokedex pokedex) {
     struct pokenode *currentNode = pokedex->head;
-    // struct pokenode *currentlySelected = pokedex->selectedPokenode;
     while (currentNode != NULL) {
         if (currentNode->pokemon == pokedex->selectedPokenode->pokemon) {
             printf("--> ");
@@ -147,7 +148,6 @@ void print_pokemon(Pokedex pokedex) {
         }
         printf("#%03d ", pokemon_id(currentNode->pokemon));
         print_name_if_found(currentNode);
-        print_type(currentNode);
         printf("\n");
             currentNode = currentNode->next;
     }
@@ -302,8 +302,9 @@ void show_evolutions(Pokedex pokedex) {
         print_name_if_found(leadingNode);
     } else {
         // printf("%s\n", pokemon_name(leadingNode->pokemon) );
-        printf("????? ");
+        printf("?????");
     }
+    print_type(leadingNode, 2);
 
     while (leadingNode->evolveInto != -1) {
         evolves = leadingNode->evolveInto;
@@ -315,15 +316,20 @@ void show_evolutions(Pokedex pokedex) {
             print_name_if_found(leadingNode);
         } else {
             // printf("%s\n", pokemon_name(leadingNode->pokemon) );
-            printf("????? ");
+            printf("?????");
         }
+        print_type(leadingNode, 2);
     }
     printf("\n");
 }
 
 int get_next_evolution(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the get_next_evolution function in pokedex.c\n");
-    exit(1);
+    int evolveInto = pokedex->selectedPokenode->evolveInto;
+
+    if (evolveInto == -1) {
+        return DOES_NOT_EVOLVE;
+    }
+    return evolveInto;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -331,13 +337,38 @@ int get_next_evolution(Pokedex pokedex) {
 ////////////////////////////////////////////////////////////////////////
 
 Pokedex get_pokemon_of_type(Pokedex pokedex, pokemon_type type) {
-    fprintf(stderr, "exiting because you have not implemented the get_pokemon_of_type function in pokedex.c\n");
-    exit(1);
+    struct pokenode *node = pokedex->head;
+    const char *matchType = pokemon_type_to_string(type);
+    printf("%s\n", matchType);
+
+
+
+    // Pokedex newPokedex = new_pokedex();
+    // add_pokemon()
+    // Pokemon pokemon;
+    // new_pokenode(newPokedex, pokemon);
+    // reurn newPokedex;
 }
 
 Pokedex get_found_pokemon(Pokedex pokedex) {
-    fprintf(stderr, "exiting because you have not implemented the get_found_pokemon function in pokedex.c\n");
-    exit(1);
+    struct pokenode *leadingNode = pokedex->head;
+    int found;
+    Pokedex newPokedex = new_pokedex();
+    struct pokenode *leadingNewNode = newPokedex->head;
+    Pokemon pokemon;
+
+    while (leadingNode != NULL) {
+        found = leadingNode->found;
+        if (found == 1) {
+            pokemon = leadingNode->pokemon;
+            leadingNewNode = new_pokenode(pokemon, leadingNewNode);
+        }
+
+        leadingNode = leadingNode->next;
+    }
+
+    // const char *matchType = pokemon_type_to_string(type);
+    // printf("%s\n", matchType);
 }
 
 Pokedex search_pokemon(Pokedex pokedex, char *text) {
@@ -348,15 +379,33 @@ Pokedex search_pokemon(Pokedex pokedex, char *text) {
 // Add definitions for your own functions below.
 // Make them static to limit their scope to this file.
 
-static void print_type(struct pokenode *node) {
+static void print_type(struct pokenode *node, int failType) {
     Pokemon pokemon = node->pokemon;
-//     pokemon_type firstType = pokemon_first_type(pokemon);
+    pokemon_type firstType = pokemon_first_type(pokemon);
+    pokemon_type secondType = pokemon_second_type(pokemon);
 
-    printf("%s\n", pokemon_first_type(pokemon));
+    const char *firstTypeString = pokemon_type_to_string(firstType);
+    const char *secondTypeString = pokemon_type_to_string(secondType);
+    const char *none = "None";
 
-    // if (pokemon(pokemon_id())) {
+    if (failType == 1) {
+        if (strcmp(secondTypeString, none) == 0) {
+            printf("Type: %s\n", firstTypeString);
+        } else {
+            printf("Type: %s %s\n", firstTypeString, secondTypeString);
+        }
+    } else if (failType == 2) {
+        if (node->found == 1) {
+            if (strcmp(secondTypeString, none) == 0) {
+                printf(" [%s]", firstTypeString);
+            } else {
+                printf(" [%s, %s]", firstTypeString, secondTypeString);
+            }
+        } else {
+            printf(" [???]");
 
-    // }
+        }
+    }
 }
 
 static void print_name_if_found(struct pokenode *node) {
