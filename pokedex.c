@@ -442,15 +442,16 @@ Pokedex search_pokemon(Pokedex pokedex, char *text) {
     while (node != NULL) {
         pokemon = node->pokemon;
         name = pokemon_name(pokemon);
-        printf("Hey its being checked\n");
-        char *test = strstr(name, test);
+        // printf("Hey its being checked\n");
+        char *test = strstr(name, text);
         // printf("%s\n", test);
-        if (test != NULL) {
-            add_pokemon(newPokedex, clone_pokemon(pokemon));
+        if(node->found == 1) {
+            if (test != NULL) {
+                add_pokemon(newPokedex, clone_pokemon(pokemon));
+            }
         }
         node = node->next;
     }
-
 
     struct pokenode *newPokenode = newPokedex->head;
     while (newPokenode != NULL) {
