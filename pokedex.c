@@ -14,7 +14,7 @@
 #include <assert.h>
 
 // Add any extra #includes your code needs here.
-#include <string.h>
+
 // But note you are not permitted to use functions from string.h
 // so do not #include <string.h>
 
@@ -66,8 +66,8 @@ static void print_name_if_found(struct pokenode *node);
 static struct pokenode *get_pokenode(Pokedex pokedex, int id);
 static void print_id_if_found(struct pokenode *node);
 static void print_type(struct pokenode *node, int failType);
-
-
+static int compare_strings(const char *one, const char *two);
+static int find_in_string(char *str, char *substr);
 // You need to implement the following 20 functions.
 // In other words, replace the lines calling fprintf & exit with your code.
 // You can find descriptions of what each function should do in pokedex.h
@@ -373,6 +373,7 @@ int get_next_evolution(Pokedex pokedex) {
         }
         return evolveInto;
     }
+    return -1;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -392,9 +393,9 @@ Pokedex get_pokemon_of_type(Pokedex pokedex, pokemon_type type) {
         firstType = pokemon_type_to_string(pokemon_first_type(pokemon));
         secondType = pokemon_type_to_string(pokemon_second_type(pokemon));
 
-        if (strcmp(matchType, firstType) == 0 || strcmp(matchType, secondType) == 0 ) {
+        if (compare_strings(matchType, firstType) == 1 || compare_strings(matchType, secondType) == 1 ) {
             if (node->found == 1) {
-                add_pokemon(newPokedex, clone_pokemon(pokemon));
+                //add_pokemon(newPokedex, clone_pokemon(pokemon));
             }
         }
 
@@ -433,7 +434,9 @@ Pokedex get_found_pokemon(Pokedex pokedex) {
 }
 
 Pokedex search_pokemon(Pokedex pokedex, char *text) {
-
+    if (text == NULL) {
+        return pokedex;
+    }
     Pokedex newPokedex = new_pokedex();
     Pokemon pokemon;
     char *name;
@@ -442,11 +445,10 @@ Pokedex search_pokemon(Pokedex pokedex, char *text) {
     while (node != NULL) {
         pokemon = node->pokemon;
         name = pokemon_name(pokemon);
-        // printf("Hey its being checked\n");
-        char *test = strstr(name, text);
-        // printf("%s\n", test);
+        int inString = find_in_string(name, text);
+        printf("In String = %s\n", inString);
         if(node->found == 1) {
-            if (test != NULL) {
+            if (inString != 0) {
                 add_pokemon(newPokedex, clone_pokemon(pokemon));
             }
         }
@@ -475,14 +477,14 @@ static void print_type(struct pokenode *node, int failType) {
     const char *none = "None";
 
     if (failType == 1) {
-        if (strcmp(secondTypeString, none) == 0) {
+        if (compare_strings(secondTypeString, none) == 1) {
             printf("Type: %s\n", firstTypeString);
         } else {
             printf("Type: %s %s\n", firstTypeString, secondTypeString);
         }
     } else if (failType == 2) {
         if (node->found == 1) {
-            if (strcmp(secondTypeString, none) == 0) {
+            if (compare_strings(secondTypeString, none) == 1) {
                 printf(" [%s]", firstTypeString);
             } else {
                 printf(" [%s, %s]", firstTypeString, secondTypeString);
@@ -540,4 +542,81 @@ static struct pokenode *get_pokenode(Pokedex pokedex, int id) {
         leadingNode = leadingNode->next;
     }
     return found;
+}
+
+static int compare_strings(const char *one, const char *two) {
+    int i;
+    i = 0;
+    // int match = 0;
+    int twoChar = 0;
+    int oneChar = 0;
+    int matchingChar = 0;
+
+    while (one[i] == two[i] && one[i] != '\0') {
+        i++;
+    }
+    matchingChar = i;
+
+    i = 0;
+    while (one[i] != '\0') {
+        i++;
+    }
+    oneChar = i;
+
+    i = 0;
+    while (two[i] != '\0') {
+        i++;
+    }
+    twoChar = i;
+
+
+    if (oneChar == 0) {
+        return 0;
+    }
+    if (oneChar == twoChar && twoChar == matchingChar) {
+        return 1;
+    } else {
+        return 0;
+    }
+    return 0;
+}
+
+static int find_in_string(char *str, char *substr) {
+
+    char *fullName = str;
+    char *searchTerm = substr;
+    int exit1 = 0;
+    int i = 0;
+    int x = 0;
+    int y = 0;
+    int found = 0;
+    int exit2 = 0;
+    while (*(fullName + i) != '\0') {
+
+        printf("%c\n", *(searchTerm + i));
+
+        if (*(fullName + i) == *(searchTerm + x)) {
+            y = i;
+            while (exit1 == 0) {
+                printf("does %c mtach %c\n",*(fullName + y), *(searchTerm + x));
+                if (*(fullName + y) == *(searchTerm + x)) {
+                    y++;
+                    x++;
+                    if (*(searchTerm + y) == '\0') {
+                        printf("Bazinga\n");
+                        found = 1;
+                        exit2 = 1;
+                        exit1 = 1;
+
+                    }
+                } else {
+                    exit1 = 1;
+                }
+            }
+        }
+        printf("Found: %d\n", found);
+        i++;
+    }
+
+return found;
 }
