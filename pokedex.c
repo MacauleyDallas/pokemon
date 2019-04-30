@@ -446,7 +446,7 @@ Pokedex search_pokemon(Pokedex pokedex, char *text) {
         pokemon = node->pokemon;
         name = pokemon_name(pokemon);
         int inString = find_in_string(name, text);
-        printf("In String = %s\n", inString);
+        // printf("In String = %d\n", inString);
         if(node->found == 1) {
             if (inString != 0) {
                 add_pokemon(newPokedex, clone_pokemon(pokemon));
@@ -591,20 +591,26 @@ static int find_in_string(char *str, char *substr) {
     int y = 0;
     int found = 0;
     int exit2 = 0;
-    while (*(fullName + i) != '\0') {
+    int loop = 1;
+    while (*(fullName + i) != '\0' && exit2 != 1) {
 
-        printf("%c\n", *(searchTerm + i));
+        //printf("%c\n", *(searchTerm + i));
 
         if (*(fullName + i) == *(searchTerm + x)) {
             y = i;
+            x = 0;
+            exit1 = 0;
             while (exit1 == 0) {
-                printf("does %c mtach %c\n",*(fullName + y), *(searchTerm + x));
+                //printf("does %c mtach %c\n",*(fullName + y), *(searchTerm + x));
                 if (*(fullName + y) == *(searchTerm + x)) {
+                    // printf("Looping %d\n", loop);
+                    loop++;
                     y++;
                     x++;
-                    if (*(searchTerm + y) == '\0') {
-                        printf("Bazinga\n");
-                        found = 1;
+                    if (*(searchTerm + x) == '\0') {
+                        //printf("Bazinga\n");
+                        // printf("Found: 1");
+                        return 1;
                         exit2 = 1;
                         exit1 = 1;
 
@@ -614,9 +620,10 @@ static int find_in_string(char *str, char *substr) {
                 }
             }
         }
-        printf("Found: %d\n", found);
+        // printf("%d", i);
         i++;
     }
-
-return found;
+    // printf("Found: 0");
+    return 0;
 }
+
