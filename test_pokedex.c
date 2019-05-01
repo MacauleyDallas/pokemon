@@ -17,7 +17,6 @@
 
 // Add your own #defines here.
 
-
 // Sample data on Bulbasaur, the Pokemon with pokemon_id 1.
 #define BULBASAUR_ID 1
 #define BULBASAUR_NAME "Bulbasaur"
@@ -58,21 +57,20 @@
 #define CHARMELEON_FIRST_TYPE FIRE_TYPE
 #define CHARMELEON_SECOND_TYPE NONE_TYPE
 
-
-
 // Add your own prototypes here.
 static void get_current(void);
 static Pokemon create_venusaur(void);
 static Pokemon create_charmander(void);
 static Pokemon create_charmeleon(void);
-static void add_five_pokemon(Pokedex pokedex, Pokemon bulbasaur,
-    Pokemon ivysaur, Pokemon venusaur, Pokemon charmeleon,
-    Pokemon charmander);
+static void add_five_pokemon(Pokedex pokedex, Pokemon pokeOne,
+    Pokemon pokeTwo, Pokemon pokeThree, Pokemon pokeFour,
+    Pokemon pokeFive);
 static int compare_strings(const char *one, const char *two);
 static void change_pokemon(Pokedex pokedex, int type, int amount);
 static void test_go_exploring(void);
 static void test_search_pokemon(void);
 static void find_pokemon(Pokedex pokedex, int amount);
+static void test_get_type_pokemon(void);
 
 
 // Tests for Pokedex functions from pokedex.c.
@@ -100,6 +98,7 @@ int main(int argc, char *argv[]) {
     get_current();
     test_go_exploring();
     test_search_pokemon();
+    test_get_type_pokemon();
     printf("\nAll Pokedex tests passed, you are Awesome!\n");
 }
 
@@ -166,7 +165,7 @@ static void test_add_pokemon(void) {
 
     // Calling function to add the five pokemon to pokedex
     add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
-        charmeleon, charmander);
+        charmander, charmeleon);
 
     printf("       --> Checking that the current Pokemon is Bulbasaur\n");
     assert(is_same_pokemon(get_current_pokemon(pokedex), bulbasaur));
@@ -216,7 +215,7 @@ static void test_next_pokemon(void) {
 
     // Calling function to add the five pokemon to pokedex
     add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
-        charmeleon, charmander);
+        charmander, charmeleon);
 
     printf("       --> Checking that the current Pokemon is Bulbasaur\n");
     assert(is_same_pokemon(get_current_pokemon(pokedex), bulbasaur));
@@ -271,17 +270,6 @@ static void test_next_pokemon(void) {
 // then calls the get_found_pokemon function to get all of the Pokemon
 // which have been found (which should be just the one, Bulbasaur).
 //
-// Some of the ways that you could extend these tests would include:
-//   - calling the get_found_pokemon function on an empty Pokedex,
-//   - calling the get_found_pokemon function on a Pokedex where none of
-//     the Pokemon have been found,
-//   - checking that the Pokemon in the new Pokedex are in ascending
-//     order of pokemon_id (regardless of the order that they appeared
-//     in the original Pokedex),
-//   - checking that the currently selected Pokemon in the returned
-//     Pokedex has been set correctly,
-//   - checking that the original Pokedex has not been modified,
-//   - ... and more!
 static void test_get_found_pokemon(void) {
     printf("\n>> Testing get_found_pokemon\n");
 
@@ -293,6 +281,8 @@ static void test_get_found_pokemon(void) {
 
     printf("       --> Checking that the pokedex is empty\n");
     assert(count_total_pokemon(found_pokedex) == 0);
+
+    destroy_pokedex(found_pokedex);
 
     // Creating five pokemon
     printf("    ... Creating Bulbasaur\n");
@@ -308,7 +298,7 @@ static void test_get_found_pokemon(void) {
 
     // Calling function to add the five pokemon to pokedex
     add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
-        charmeleon, charmander);
+        charmander, charmeleon);
 
     printf("       --> Checking that the current Pokemon is Bulbasaur\n");
     assert(get_current_pokemon(pokedex) == bulbasaur);
@@ -318,6 +308,8 @@ static void test_get_found_pokemon(void) {
 
     printf("       --> Checking that the pokedex is empty\n");
     assert(count_total_pokemon(found_pokedex) == 0);
+
+    destroy_pokedex(found_pokedex);
 
     printf("    ... Setting Bulbasaur to be found\n");
     find_current_pokemon(pokedex);
@@ -345,12 +337,6 @@ static void get_current(void) {
     printf("    ... Creating a new Pokedex\n");
     Pokedex pokedex = new_pokedex();
 
-    printf("    ... Getting the currently selected when there are none\n");
-    Pokemon current = get_current_pokemon(pokedex);
-
-    printf("       --> Checking the the correct pokemon was retreived\n");
-    assert(get_current_pokemon(pokedex) == NULL);
-
     // Creating five pokemon
     printf("    ... Creating Bulbasaur\n");
     Pokemon bulbasaur = create_bulbasaur();
@@ -363,9 +349,10 @@ static void get_current(void) {
     printf("    ... Creating Charmeleon\n");
     Pokemon charmeleon = create_charmeleon();
 
+    Pokemon current = NULL;
     // Calling function to add the five pokemon to pokedex
     add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
-        charmeleon, charmander);
+        charmander, charmeleon);
 
     printf("    ... Getting the currently selected pokemon\n");
     current = get_current_pokemon(pokedex);
@@ -382,9 +369,8 @@ static void get_current(void) {
     printf("       --> Checking the the correct pokemon was retreived\n");
     assert(get_current_pokemon(pokedex) == ivysaur);
 
-    printf("    ... Destroying the pokedex\n");
+    printf("    ... Destroying the Pokedexes\n");
     destroy_pokedex(pokedex);
-
     printf(">> Passed get_current tests!\n");
 
 }
@@ -395,12 +381,6 @@ static void test_go_exploring(void) {
     printf("    ... Creating a new Pokedex\n");
     Pokedex pokedex = new_pokedex();
 
-    printf("    ... Getting the currently selected when there are none\n");
-    Pokemon current = get_current_pokemon(pokedex);
-
-    printf("       --> Checking the the correct pokemon was retreived\n");
-    assert(get_current_pokemon(pokedex) == NULL);
-
     // Creating five pokemon
     printf("    ... Creating Bulbasaur\n");
     Pokemon bulbasaur = create_bulbasaur();
@@ -415,7 +395,7 @@ static void test_go_exploring(void) {
 
     // Calling function to add the five pokemon to pokedex
     add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
-        charmeleon, charmander);
+        charmander, charmeleon);
 
     int seed = 429;
     printf("    ... Going Exploring\n");
@@ -424,14 +404,18 @@ static void test_go_exploring(void) {
     printf("    ... Getting all found Pokemon\n");
     Pokedex found_pokedex = get_found_pokemon(pokedex);
 
+    // printf("Num: %d\n", count_total_pokemon(found_pokedex));
     printf("       --> Checking that the pokedex only has one pokemon\n");
     assert(count_total_pokemon(found_pokedex) == 1);
+
 
     printf("       --> Destroying the found pokemon pokedex\n");
     destroy_pokedex(found_pokedex);
 
     printf("       --> Destroying original pokedex\n");
     destroy_pokedex(pokedex);
+
+    printf(">> Passed go exploring tests!\n");
 }
 
 static void test_search_pokemon(void) {
@@ -440,13 +424,6 @@ static void test_search_pokemon(void) {
     printf("    ... Creating a new Pokedex\n");
     Pokedex pokedex = new_pokedex();
 
-    printf("    ... Getting the currently selected when there are none\n");
-    Pokemon current = get_current_pokemon(pokedex);
-
-    printf("       --> Checking the the correct pokemon was retreived\n");
-    assert(get_current_pokemon(pokedex) == NULL);
-
-    // Creating five pokemon
     printf("    ... Creating Bulbasaur\n");
     Pokemon bulbasaur = create_bulbasaur();
     printf("    ... Creating Ivysaur\n");
@@ -458,9 +435,8 @@ static void test_search_pokemon(void) {
     printf("    ... Creating Charmeleon\n");
     Pokemon charmeleon = create_charmeleon();
 
-    // Calling function to add the five pokemon to pokedex
     add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
-        charmeleon, charmander);
+        charmander, charmeleon);
 
     printf("    ... Finding all pokemon in the pokedex\n");
     find_pokemon(pokedex, 5);
@@ -472,15 +448,94 @@ static void test_search_pokemon(void) {
     printf("       --> Testing to see if the resulting pokedex has three entries\n");
     assert(count_total_pokemon(newPokedex) == 3);
 
+    destroy_pokedex(newPokedex);
 
-    printf("    ... Searching the pokedex for pokemon with an empty search string\n");
+    printf("    ... Searching the pokedex for pokemon with no search string\n");
     newPokedex = search_pokemon(pokedex, "");
 
     printf("       --> Testing to see if the resulting pokedex has zero entries\n");
     assert(count_total_pokemon(newPokedex) == 0);
 
+    destroy_pokedex(newPokedex);
+
+    printf("    ... Searching the pokedex for the string 'SaUr'\n");
+    newPokedex = search_pokemon(pokedex, "SaUr");
+
+    printf("       --> Testing to see if the resulting pokedex has three entries\n");
+    assert(count_total_pokemon(newPokedex) == 3);
+
+    destroy_pokedex(newPokedex);
+
+    printf("    ... Searching the pokedex for the string 'Charmander'\n");
+    newPokedex = search_pokemon(pokedex, "Charmander");
+
+    printf("       --> Testing to see if the resulting pokedex has one entries\n");
+    assert(count_total_pokemon(newPokedex) == 1);
+
+    printf("       --> Destroying pokedexs\n");
+    destroy_pokedex(pokedex);
+    destroy_pokedex(newPokedex);
+    printf(">> Passed search pokemon tests!\n");
+
 }
 
+static void test_get_type_pokemon(void) {
+    printf("\n>> Testing get type pokemon function\n");
+
+    printf("    ... Creating a new Pokedex\n");
+    Pokedex pokedex = new_pokedex();
+
+    printf("    ... Creating Bulbasaur\n");
+    Pokemon bulbasaur = create_bulbasaur();
+    printf("    ... Creating Ivysaur\n");
+    Pokemon ivysaur = create_ivysaur();
+    printf("    ... Creating Venusaur\n");
+    Pokemon venusaur = create_venusaur();
+    printf("    ... Creating Charmander\n");
+    Pokemon charmander = create_charmander();
+    printf("    ... Creating Charmeleon\n");
+    Pokemon charmeleon = create_charmeleon();
+
+    add_five_pokemon(pokedex, bulbasaur, ivysaur, venusaur,
+        charmander, charmeleon);
+
+    printf("    ... Finding all pokemon in the pokedex\n");
+    find_pokemon(pokedex, 5);
+    Pokedex newPokedex;
+
+    printf("    ... Searching the pokedex for pokemon of type 'Fire'\n");
+    newPokedex = get_pokemon_of_type(pokedex, pokemon_type_from_string("Fire"));
+
+    printf("       --> Testing to see if the resulting pokedex has two entries\n");
+    assert(count_total_pokemon(newPokedex) == 2);
+
+    printf("    ... Destroying the new Pokedex\n");
+    destroy_pokedex(newPokedex);
+
+
+    printf("    ... Searching the pokedex for the string 'Grass'\n");
+    newPokedex = get_pokemon_of_type(pokedex, pokemon_type_from_string("Grass"));
+
+    printf("       --> Testing to see if the resulting pokedex has two entries\n");
+    assert(count_total_pokemon(newPokedex) == 3);
+
+    destroy_pokedex(newPokedex);
+
+    printf("    ... Searching the pokedex for the string 'Water'\n");
+    newPokedex = get_pokemon_of_type(pokedex, pokemon_type_from_string("Water"));
+
+    assert(count_total_pokemon(newPokedex) == 0);
+
+    destroy_pokedex(newPokedex);
+
+
+    printf("    ... Destroying the Pokedexes\n");
+
+    destroy_pokedex(pokedex);
+    destroy_pokedex(newPokedex);
+    printf(">> Passed get type pokemon tests!\n");
+
+}
 
 ////////////////////////////////////////////////////////////////////////
 //                     Helper Functions                               //
@@ -527,9 +582,6 @@ static int is_same_pokemon(Pokemon first, Pokemon second) {
 // pointers aren't both pointing to the same pokemon struct in memory.
 // If the pointers both contain the same address, then the second
 // Pokemon is not a *copy* of the first Pokemon.
-//
-// This function doesn't (yet) check that the Pokemon's names match
-// (but perhaps you could add that check yourself...).
 static int is_copied_pokemon(Pokemon first, Pokemon second) {
     return (pokemon_id(first) == pokemon_id(second))
     &&  (first != second)
@@ -542,7 +594,7 @@ static int is_copied_pokemon(Pokemon first, Pokemon second) {
 
 
 // Write your own helper functions here!
-// Creating a few more pokemon to use
+// This function compares two strings
 static int compare_strings(const char *one, const char *two) {
     int i;
     i = 0;
@@ -577,6 +629,8 @@ static int compare_strings(const char *one, const char *two) {
     }
     return 0;
 }
+
+// Creating Venusaur to use for testing
 static Pokemon create_venusaur(void) {
     Pokemon pokemon = new_pokemon(
             VENUSAUR_ID, VENUSAUR_NAME,
@@ -587,6 +641,7 @@ static Pokemon create_venusaur(void) {
     return pokemon;
 }
 
+// Creating Charmander to use for testing
 static Pokemon create_charmander(void) {
     Pokemon pokemon = new_pokemon(
             CHARMANDER_ID, CHARMANDER_NAME,
@@ -597,6 +652,7 @@ static Pokemon create_charmander(void) {
     return pokemon;
 }
 
+// Creating Charmeleon to use for testing
 static Pokemon create_charmeleon(void) {
     Pokemon pokemon = new_pokemon(
             CHARMELEON_ID, CHARMELEON_NAME,
@@ -607,33 +663,41 @@ static Pokemon create_charmeleon(void) {
     return pokemon;
 }
 
-static void add_five_pokemon(Pokedex pokedex, Pokemon bulbasaur,
-    Pokemon ivysaur, Pokemon venusaur, Pokemon charmeleon,
-    Pokemon charmander) {
-    printf("    ... Adding Bulbasaur to the Pokedex\n");
-    add_pokemon(pokedex, bulbasaur);
+// This function adds five given pokemon to a given pokedex
+static void add_five_pokemon(Pokedex pokedex, Pokemon pokeOne,
+    Pokemon pokeTwo, Pokemon pokeThree, Pokemon pokeFour,
+    Pokemon pokeFive) {
+    printf("    ... Adding %s to the Pokedex\n", pokemon_name(pokeOne));
+    add_pokemon(pokedex, pokeOne);
 
-    printf("    ... Adding Ivysaur to the Pokedex\n");
-    add_pokemon(pokedex, ivysaur);
+    printf("    ... Adding %s to the Pokedex\n", pokemon_name(pokeTwo));
+    add_pokemon(pokedex, pokeTwo);
 
-    printf("    ... Adding Venusaur to the Pokedex\n");
-    add_pokemon(pokedex, venusaur);
+    printf("    ... Adding %s to the Pokedex\n", pokemon_name(pokeThree));
+    add_pokemon(pokedex, pokeThree);
 
-    printf("    ... Adding Charmander to the Pokedex\n");
-    add_pokemon(pokedex, charmander);
+    printf("    ... Adding %s to the Pokedex\n", pokemon_name(pokeFour));
+    add_pokemon(pokedex, pokeFour);
 
-    printf("    ... Adding Charmeleon to the Pokedex\n");
-    add_pokemon(pokedex, charmeleon);
+    printf("    ... Adding %s to the Pokedex\n", pokemon_name(pokeFive));
+    add_pokemon(pokedex, pokeFive);
 }
 
+// This function will go through and mark a given amount
+// of Pokemon as found starting from the current pokemon in ascending order.
 static void find_pokemon(Pokedex pokedex, int amount) {
     int i = 0;
+    int origin = pokemon_id(get_current_pokemon(pokedex));
     while (i < amount) {
         find_current_pokemon(pokedex);
         next_pokemon(pokedex);
         i++;
     }
+    change_current_pokemon(pokedex, origin);
 }
+
+// This function will change the selected pokemon a given
+// amount of times in a given direction.
 static void change_pokemon(Pokedex pokedex, int type, int amount) {
     int count = 0;
     while (count < amount) {
