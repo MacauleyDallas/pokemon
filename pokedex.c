@@ -22,7 +22,6 @@
 
 // Add your own #defines here.
 
-
 // Note you are not permitted to use arrays in struct pokedex,
 // you must use a linked list.
 //
@@ -68,36 +67,42 @@ static void print_id_if_found(struct pokenode *node);
 static void print_type(struct pokenode *node, int failType);
 static int compare_strings(const char *one, const char *two);
 static int find_in_string(char *str, char *substr);
+static void poketails(struct pokenode *node1, struct pokenode *node2);
+static void swap_pokenodes(struct pokenode *node1, struct pokenode *node2,
+    Pokedex pokedex);
+static Pokedex sort_pokedex_by_id(struct pokedex *pokedex);
+static int upper_case(int character);
+static int does_pokemon_exist(Pokedex pokedex, Pokemon pokemon);
+
 // You need to implement the following 20 functions.
 // In other words, replace the lines calling fprintf & exit with your code.
 // You can find descriptions of what each function should do in pokedex.h
 
-
 Pokedex new_pokedex(void) {
     Pokedex new_pokedex = malloc(sizeof (struct pokedex));
     assert(new_pokedex != NULL);
-    // add your own code here
     new_pokedex->numPokemon = 0;
-    // k
     new_pokedex->head = NULL;
     new_pokedex->selectedPokenode = NULL;
-
     return new_pokedex;
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 //                         Stage 1 Functions                          //
 ////////////////////////////////////////////////////////////////////////
 
 void add_pokemon(Pokedex pokedex, Pokemon pokemon) {
-    //Make new pokenode
+    if (does_pokemon_exist(pokedex, pokemon) == 1) {
+        fprintf(stderr, "Exiting because the pokemon already exists\n");
+        exit(1);
+    }
     struct pokenode *node;
     if (pokedex->head == NULL) {
         node = NULL;
     } else {
         node = pokedex->leadingNode;
     }
+    //Make new pokenode
     struct pokenode *newPokenode = new_pokenode(pokemon, node);
     if (pokedex->numPokemon == 0) {
         pokedex->head = newPokenode;
@@ -134,7 +139,11 @@ void detail_pokemon(Pokedex pokedex) {
 }
 
 Pokemon get_current_pokemon(Pokedex pokedex) {
-    Pokemon pokemon = pokedex->selectedPokenode->pokemon;
+
+    Pokemon pokemon = NULL;
+    if (pokedex->selectedPokenode != NULL) {
+        pokemon = pokedex->selectedPokenode->pokemon;
+    }
     // printf("%d\n", pokemon_id(pokedex->selectedPokenode->pokemon));
     return pokemon;
 }
@@ -170,7 +179,6 @@ void next_pokemon(Pokedex pokedex) {
         if (selected->next != NULL && selected != NULL) {
             pokedex->selectedPokenode = pokedex->selectedPokenode->next;
         }
-    // print_pokemon(pokedex);
     }
 }
 void prev_pokemon(Pokedex pokedex) {
@@ -243,29 +251,26 @@ void destroy_pokedex(Pokedex pokedex) {
 void go_exploring(Pokedex pokedex, int seed, int factor, int how_many) {
     // Pokemon currentlySelected = get_current_pokemon(pokedex);
     struct pokenode *randomNode = NULL;
-    srand(seed);
-    if (how_many-1 != 0) {
-
-    } {
-        printf("Error: Division by 0\n");
-    }
-    int num = rand() % (how_many - 1);
-    printf("Randomly chosen ID number %d\n", num);
     struct pokenode *leadingNode = pokedex->head;
-    num = 20;
+    srand(seed);
+    int num = 0;
+    int encountered = 0;
 
-    while (leadingNode != NULL) {
-        if (pokemon_id(leadingNode->pokemon) == num) {
-            randomNode = leadingNode;
+    while (encountered < how_many) {
+        num = rand() % (factor - 1);
+        leadingNode = pokedex->head;
+        while (leadingNode != NULL) {
+            if (pokemon_id(leadingNode->pokemon) == num) {
+                randomNode = leadingNode;
+            }
+            leadingNode = leadingNode->next;
         }
 
-        leadingNode = leadingNode->next;
+        if (randomNode != NULL) {
+            randomNode->found = 1;
+        }
+        encountered++;
     }
-
-    if (randomNode != NULL) {
-        randomNode->found = 1;
-    }
-
 }
 
 int count_found_pokemon(Pokedex pokedex) {
@@ -275,10 +280,8 @@ int count_found_pokemon(Pokedex pokedex) {
         if (leadingNode->found == 1) {
             count++;
         }
-
         leadingNode = leadingNode->next;
     }
-
     return count;
 }
 
@@ -349,7 +352,7 @@ void show_evolutions(Pokedex pokedex) {
         if (node->found == 1) {
             print_name_if_found(node);
         } else {
-            // printf("%s\n", pokemon_name(leadingNode->pokemon) );
+            printf("%s\n", pokemon_name(leadingNode->pokemon) );
             printf("????");
         }
         print_type(node, 2);
@@ -372,6 +375,9 @@ int get_next_evolution(Pokedex pokedex) {
             return DOES_NOT_EVOLVE;
         }
         return evolveInto;
+    } else {
+        fprintf(stderr, "Exiting because the current pokedex is empty\n");
+        exit(1);
     }
     return -1;
 }
@@ -387,15 +393,23 @@ Pokedex get_pokemon_of_type(Pokedex pokedex, pokemon_type type) {
     const char *firstType;
     const char *secondType;
 
+
+    if (type == INVALID_TYPE || type == NONE_TYPE || type == MAX_TYPE) {
+        fprintf(stderr, "Exiting because you entered an invalid search type.\n");
+        exit(1);
+    }
+
+
     struct pokenode *node = pokedex->head;
     while (node != NULL) {
         pokemon = node->pokemon;
         firstType = pokemon_type_to_string(pokemon_first_type(pokemon));
         secondType = pokemon_type_to_string(pokemon_second_type(pokemon));
 
-        if (compare_strings(matchType, firstType) == 1 || compare_strings(matchType, secondType) == 1 ) {
+        if (compare_strings(matchType, firstType) == 1 ||
+            compare_strings(matchType, secondType) == 1) {
             if (node->found == 1) {
-                //add_pokemon(newPokedex, clone_pokemon(pokemon));
+                add_pokemon(newPokedex, clone_pokemon(pokemon));
             }
         }
 
@@ -412,6 +426,9 @@ Pokedex get_pokemon_of_type(Pokedex pokedex, pokemon_type type) {
 }
 
 Pokedex get_found_pokemon(Pokedex pokedex) {
+    //struct pokenode *node1 = pokedex->head->next;
+    //struct pokenode *node2 = pokedex->head->next->next;
+
     Pokedex newPokedex = new_pokedex();
     Pokemon pokemon;
     struct pokenode *node = pokedex->head;
@@ -429,8 +446,9 @@ Pokedex get_found_pokemon(Pokedex pokedex) {
         newPokenode->found = 1;
         newPokenode = newPokenode->next;
     }
-
-    return newPokedex;
+    // return newPokedex;
+    Pokedex returnPoke = sort_pokedex_by_id(newPokedex);
+    return returnPoke;
 }
 
 Pokedex search_pokemon(Pokedex pokedex, char *text) {
@@ -447,7 +465,7 @@ Pokedex search_pokemon(Pokedex pokedex, char *text) {
         name = pokemon_name(pokemon);
         int inString = find_in_string(name, text);
         // printf("In String = %d\n", inString);
-        if(node->found == 1) {
+        if (node->found == 1) {
             if (inString != 0) {
                 add_pokemon(newPokedex, clone_pokemon(pokemon));
             }
@@ -547,7 +565,6 @@ static struct pokenode *get_pokenode(Pokedex pokedex, int id) {
 static int compare_strings(const char *one, const char *two) {
     int i;
     i = 0;
-    // int match = 0;
     int twoChar = 0;
     int oneChar = 0;
     int matchingChar = 0;
@@ -569,7 +586,6 @@ static int compare_strings(const char *one, const char *two) {
     }
     twoChar = i;
 
-
     if (oneChar == 0) {
         return 0;
     }
@@ -582,48 +598,153 @@ static int compare_strings(const char *one, const char *two) {
 }
 
 static int find_in_string(char *str, char *substr) {
-
     char *fullName = str;
+    char fullName2[30] = {0};
+    char searchTerm2[30] = {0};
     char *searchTerm = substr;
-    int exit1 = 0;
     int i = 0;
     int x = 0;
     int y = 0;
-    int found = 0;
-    int exit2 = 0;
-    int loop = 1;
-    while (*(fullName + i) != '\0' && exit2 != 1) {
+    int loop = 0;
 
-        //printf("%c\n", *(searchTerm + i));
+    // printf("-------------------\n");
+    while (*(searchTerm + y) != '\0') {
+        searchTerm2[y] = upper_case(*(searchTerm + y));
+        y++;
+    }
 
-        if (*(fullName + i) == *(searchTerm + x)) {
+    int searchCount = y;
+    y = 0;
+
+    while (*(fullName + y) != '\0') {
+        fullName2[y] = upper_case(*(fullName + y));
+        y++;
+    }
+    y = 0;
+
+    while (fullName2[i] != '\0') {
+        y = 0;
+        x = 0;
+        loop = 0;
+        if (fullName2[i] == searchTerm2[x]) {
             y = i;
-            x = 0;
-            exit1 = 0;
-            while (exit1 == 0) {
-                //printf("does %c mtach %c\n",*(fullName + y), *(searchTerm + x));
-                if (*(fullName + y) == *(searchTerm + x)) {
-                    // printf("Looping %d\n", loop);
-                    loop++;
+            while (loop <= searchCount) {
+                if (fullName2[y] == searchTerm2[x]) {
+                    // printf("%d and %d\n", y, x);
+                    // printf("%c and %c\n", fullName2[y], searchTerm2[x]);
                     y++;
                     x++;
-                    if (*(searchTerm + x) == '\0') {
-                        //printf("Bazinga\n");
-                        // printf("Found: 1");
+                    if (searchTerm2[x] == '\0') {
+                        // printf("For narnia\n\n");
                         return 1;
-                        exit2 = 1;
-                        exit1 = 1;
-
                     }
                 } else {
-                    exit1 = 1;
+                    loop = searchCount + 1;
                 }
+                loop++;
             }
         }
-        // printf("%d", i);
         i++;
     }
-    // printf("Found: 0");
     return 0;
 }
 
+
+static Pokedex sort_pokedex_by_id(struct pokedex *pokedex) {
+    struct pokenode *leadingNode = NULL;
+    int swap = 1;
+    int sorted = 0;
+    int exit = 0;
+    leadingNode = pokedex->head;
+    Pokemon currentPokemon;
+    Pokemon nextPokemon;
+    if (leadingNode != NULL) {
+        while (exit < 30) {
+            swap = 0;
+            sorted = 0;
+            leadingNode = pokedex->head;
+            if (leadingNode == NULL) {
+                sorted = 1;
+            }
+            while (sorted == 0) {
+                if (leadingNode != NULL && leadingNode->next != NULL) {
+                    currentPokemon = leadingNode->pokemon;
+                    nextPokemon = leadingNode->next->pokemon;
+                    if (pokemon_id(currentPokemon) > pokemon_id(nextPokemon)) {
+                        swap_pokenodes(leadingNode, leadingNode->next, pokedex);
+                        swap++;
+                    }
+                    leadingNode = leadingNode->next;
+                } else {
+                    sorted = 1;
+                }
+            }
+            exit++;
+        }
+    }
+    pokedex->selectedPokenode = pokedex->head;
+    return pokedex;
+}
+
+static void swap_pokenodes(struct pokenode *node1, struct pokenode *node2,
+    Pokedex pokedex) {
+    struct pokenode *prev1 = NULL;
+    struct pokenode *next2 = NULL;
+
+    if (node1->prev != NULL && node2->next != NULL) {
+        node1->prev->next = node2;
+        node2->prev = prev1;
+        node1->prev = node2;
+        node2->next = node1;
+        node1->next = next2;
+    } else if (node1->prev == NULL && node2->next != NULL) {
+        pokedex->head = node2;
+        next2 = node2->next;
+        node2->prev = prev1;
+        node1->prev = node2;
+        node2->next = node1;
+        node1->next = next2;
+    } else if (node1->prev == NULL && node2->next == NULL) {
+        pokedex->head = node2;
+        next2 = node2->next;
+        node2->prev = prev1;
+        node1->prev = node2;
+        node2->next = node1;
+        node1->next = next2;
+    } else if (node1->prev != NULL && node2->next == NULL) {
+        node1->prev->next = node2;
+        next2 = node2->next;
+        node2->prev = prev1;
+        node1->prev = node2;
+        node2->next = node1;
+        node1->next = next2;
+    }
+}
+
+static void poketails(struct pokenode *node1, struct pokenode *node2) {
+    printf("%d\n", pokemon_id(node2->pokemon));
+    printf("%d\n", pokemon_id(node1->next->next->next->pokemon));
+    node1->next->next->next = node2;
+    printf("%d\n", pokemon_id(node1->next->next->next->pokemon));
+}
+
+
+static int upper_case(int character) {
+    if (character >= 'A' && character <= 'Z') {
+        int alphabetPosition = character - 'A';
+        return 'a' + alphabetPosition;
+    } else {
+        return character;
+    }
+}
+
+static int does_pokemon_exist(Pokedex pokedex, Pokemon pokemon) {
+    struct pokenode *leadingNode = pokedex->head;
+    while (leadingNode != NULL) {
+        if (pokemon_id(leadingNode->pokemon) == pokemon_id(pokemon)) {
+            return 1;
+        }
+        leadingNode = leadingNode->next;
+    }
+    return 0;
+}
